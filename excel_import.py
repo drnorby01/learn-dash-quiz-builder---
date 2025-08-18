@@ -1,16 +1,10 @@
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+import pandas as pd
 
-def import_questions_from_sheet(sheet_url):
-    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
-    client = gspread.authorize(creds)
-
-    sheet = client.open_by_url(sheet_url).sheet1
-    rows = sheet.get_all_records()
+def import_questions_from_excel(file_path):
+    df = pd.read_excel(file_path)
 
     questions = []
-    for row in rows:
+    for _, row in df.iterrows():
         questions.append({
             'question': row['Question Text'],
             'answers': [row['Answer 1'], row['Answer 2'], row['Answer 3'], row['Answer 4']],
