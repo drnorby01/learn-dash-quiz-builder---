@@ -6,11 +6,13 @@
 </head>
 <body>
     <h1>LearnDash Quiz Builder</h1>
-<form id="excelForm" enctype="multipart/form-data">
-    <label>Upload Excel File (.xlsx):</label>
-    <input type="file" name="excel_file" accept=".xlsx" required>
-    <button type="submit">Import Questions</button>
-</form>
+
+    <form id="excelForm" enctype="multipart/form-data">
+        <label>Upload Excel File (.xlsx):</label>
+        <input type="file" name="excel_file" accept=".xlsx" required>
+        <button type="submit">Import Questions</button>
+    </form>
+
     <div id="quizEditor" style="display:none;">
         <label>Quiz Title:</label>
         <input type="text" id="quizTitle" value="My Quiz">
@@ -19,43 +21,47 @@
     </div>
 
     <script>
-document.getElementById('excelForm').onsubmit = async function(e) {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const res = await fetch('/import', {
-        method: 'POST',
-        body: formData
-    });
-    const data = await res.json();
-    document.getElementById('quizEditor').style.display = 'block';
-    const container = document.getElementById('questionsContainer');
-    container.innerHTML = '';
-    data.questions.forEach((q, i) => {
-        const div = document.createElement('div');
-        div.innerHTML = `<h3>Q${i+1}: ${q.question}</h3>`;
-        q.answers.forEach((a, j) => {
-            div.innerHTML += `<p>${j+1}. ${a} ${j === q.correct_index ? '(Correct)' : ''}</p>`;
-        });
-        container.appendChild(div);
-    });
-};
+        let importedQuestions = [];
+
+        document.getElementById('excelForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const res = await fetch('/import', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+            importedQuestions = data.questions;
+
+            document.getElementById('quizEditor').style.display = 'block';
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+
+            importedQuestions.forEach((q, i) => {
+                const div = document.createElement('div');
+                div.innerHTML = `<h3>Q${i + 1}: ${q.question}</h3>`;
+                q.answers.forEach((a, j) => {
+                    div.innerHTML += `<p>${j + 1}. ${a} ${j === q.correct_index ? '(Correct)' : ''}</p>`;
+                });
+                container.appendChild(div);
+            });
+        };
 
         document.getElementById('exportBtn').onclick = async function() {
             const title = document.getElementById('quizTitle').value;
-            const res = await fetch('/import', {
-                method: 'POST',
-                body: new FormData(document.getElementById('sheetForm'))
-            });
-            const data = await res.json();
+
             const payload = {
                 title: title,
-                questions: data.questions
+                questions: importedQuestions
             };
+
             const exportRes = await fetch('/export', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+
             const blob = await exportRes.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
