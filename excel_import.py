@@ -17,8 +17,9 @@ def import_questions_from_excel(file_path):
             # Defensive parsing of correct index
             try:
                 correct_index = int(row.get('correct answer index', -1))
-                if correct_index not in [0, 1, 2, 3]:
+                if correct_index not in [1, 2, 3, 4]:
                     raise ValueError
+                correct_index -= 1  # Excel uses 1-based indexing; Python lists use 0-based
             except (ValueError, TypeError):
                 correct_index = -1  # Invalid index fallback
 
