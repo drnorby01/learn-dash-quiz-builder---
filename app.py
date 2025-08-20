@@ -21,9 +21,17 @@ def import_excel():
 
 @app.route('/export', methods=['POST'])
 def export_quiz():
-    data = request.json
+    file = request.files['file']
+    imported = import_questions_from_excel(file)
+
+    # Ensure the structure matches what xml_generator expects
+    data = {
+        'title': imported.get('title', 'Exported Quiz'),
+        'questions': imported.get('questions', [])
+    }
+
     filename = generate_quiz_xml(data)
-    return send_file(filename, as_attachment=True)
+    return f"Quiz exported to {filename}"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
