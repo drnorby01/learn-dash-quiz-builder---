@@ -1,9 +1,9 @@
 import pandas as pd
 
 def import_questions_from_excel(file_path):
-    # Normalize column names
+    # Normalize column names and fix typos
     df = pd.read_excel(file_path)
-    df.columns = [col.strip().lower() for col in df.columns]
+    df.columns = [col.strip().lower().replace('incorect', 'incorrect') for col in df.columns]
 
     questions = []
 
@@ -23,9 +23,9 @@ def import_questions_from_excel(file_path):
                 if answer_text and answer_text.lower() != 'nan':
                     answers.append(answer_text)
 
-        # Validate correct index
+        # Validate and convert correct index to zero-based
         try:
-            correct_index = int(row.get('correct index', -1))
+            correct_index = int(row.get('correct answer index', -1)) - 1
         except (ValueError, TypeError):
             correct_index = -1
 

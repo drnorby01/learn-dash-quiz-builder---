@@ -27,9 +27,10 @@ def generate_quiz_xml(data):
 
         answers_el = ET.SubElement(question, 'answers')
         for j, ans in enumerate(q['answers']):
+            is_correct = 'true' if j == q['correct_index'] else 'false'
             answer = ET.SubElement(answers_el, 'answer', {
                 'points': '0',
-                'correct': 'true' if j == q['correct_index'] else 'false'
+                'correct': is_correct
             })
             ET.SubElement(answer, 'answerText', {'html': 'false'}).text = ans
             ET.SubElement(answer, 'stortText', {'html': 'false'}).text = ''
