@@ -16,6 +16,8 @@ def generate_quiz_xml(data):
 
     questions_el = ET.SubElement(quiz, 'questions')
     for i, q in enumerate(data['questions']):
+        assert isinstance(q, dict), f"Expected question dict, got {type(q)}"
+
         question = ET.SubElement(questions_el, 'question', {'answerType': 'multiple'})
         ET.SubElement(question, 'title').text = f'Question {i+1}'
         ET.SubElement(question, 'points').text = '1'
@@ -33,6 +35,6 @@ def generate_quiz_xml(data):
             ET.SubElement(answer, 'stortText', {'html': 'false'}).text = ''
 
     tree = ET.ElementTree(wpProQuiz)
-    filename = 'quiz_export.txt'
+    filename = 'quiz_export.xml'
     tree.write(filename, encoding='utf-8', xml_declaration=True)
     return filename
