@@ -20,7 +20,7 @@ def generate_quiz_xml(data):
         ET.SubElement(question, 'title').text = f'Question {i+1}'
         ET.SubElement(question, 'points').text = '1'
         ET.SubElement(question, 'questionText').text = q['question']
-        ET.SubElement(question, 'correctMsg').text = q['correct_feedback']
+        ET.SubElement(question, 'correctMsg').text = ''
         ET.SubElement(question, 'incorrectMsg').text = q['incorrect_feedback']
 
         answers_el = ET.SubElement(question, 'answers')

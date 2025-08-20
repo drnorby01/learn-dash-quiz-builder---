@@ -1,57 +1,46 @@
 import pandas as pd
 
 def import_questions_from_excel(file_path):
-    try:
-        # Load Excel file
-        df = pd.read_excel(file_path)
+    df = pd.read_excel(file_path)
+    df.columns = [col.strip().lower() for col in df.columns]
 
-        # Normalize column names (lowercase, stripped)
-        df.columns = [col.strip().lower() for col in df.columns]
+    questions = []
 
-        # Fill NaNs with empty strings to avoid attribute errors
-        df.fillna('', inplace=True)
+    for _, row in df.iterrows():
+        question_text = str(row.get('question text', '')).strip()
+        incorrect_feedback = str(row.get('incorrect feedback', '')).strip()
 
-        questions = []
+        if incorrect_feedback.lower() == 'nan':
+            incorrect_feedback = ''
 
-        for index, row in df.iterrows():
-            # Defensive parsing of correct index
-            try:
-                correct_index = int(row.get('correct answer index', -1))
-                if correct_index not in [1, 2, 3, 4]:
-                    raise ValueError
-                correct_index -= 1  # Excel uses 1-based indexing; Python lists use 0-based
-            except (ValueError, TypeError):
-                correct_index = -1  # Invalid index fallback
+        answers = []
+        for i in range(1, 10):
+            key = f'answer {i}'
+            if key in row:
+                answer_text = str(row.get(key, '')).strip()
+                if answer_text and answer_text.lower() != 'nan':
+                    answers.append(answer_text)
 
-            # Clean feedback fields
-            correct_feedback = str(row.get('correct feedback', '')).strip()
-            incorrect_feedback = str(row.get('incorrect feedback', '')).strip()
+        try:
+            correct_index = int(row.get('correct index', -1))
+        except (ValueError, TypeError):
+            correct_index = -1
 
-            # Treat 'nan' as empty
-            if correct_feedback.lower() == 'nan':
-                correct_feedback = ''
-            if incorrect_feedback.lower() == 'nan':
-                incorrect_feedback = ''
+        if correct_index < 0 or correct_index >= len(answers):
+            correct_index = 0
 
-            # Build question dictionary
-            question = {
-                'question': str(row.get('question text', '')).strip(),
-                'answers': [
-                    str(row.get('answer 1', '')).strip(),
-                    str(row.get('answer 2', '')).strip(),
-                    str(row.get('answer 3', '')).strip(),
-                    str(row.get('answer 4', '')).strip()
-                ],
-                'correct_index': correct_index,
-                'correct_feedback': correct_feedback,
-                'incorrect_feedback': incorrect_feedback
-            }
+        if not question_text or len(answers) < 2:
+            print(f"⚠️ Skipping row due to missing question or insufficient answers:\n{row}")
+            continue
 
-            questions.append(question)
+        questions.append({
+            'question': question_text,
+            'answers': answers,
+            'correct_index': correct_index,
+            'incorrect_feedback': incorrect_feedback
+        })
 
-        return questions
-
-    except Exception as e:
-        # Log and re-raise for Flask to catch
-        print(f"Error importing Excel file: {e}")
-        raise
+    return {
+        'title': 'Imported Quiz',
+        'questions': questions
+    }
